@@ -16,14 +16,14 @@ boolean gameOver=false;
 
 void mousePressed()
 {
-  Vec2 force = new Vec2(0,200000);
-  player.applyForce(force);
 }
 
 void keyPressed()
 {
   if(keyCode==32)
   {
+    Vec2 force = new Vec2(0,2000000);
+    player.applyForce(force);
     for(Spike s : spikes)
     {
      //s.body.setLinearVelocity(new Vec2(0,0));
@@ -50,10 +50,11 @@ void setup()
   size(1280,720);
   box2d = new Box2DProcessing(this);
   box2d.createWorld();
-  box2d.setGravity(0,-200);
+  box2d.setGravity(0,-400);
   
   floors.add(new Floor(width/2,height-25,width*2,50));
-  player = new Player(100,height-85,70,70);
+  floors.add(new Floor(width/2,height-350,width*2,50));
+  player = new Player(100,height-85,70,70,35);
   
   dino1=loadImage("data/dino1.png");
   dino2=loadImage("data/dino2.png");
@@ -90,7 +91,7 @@ void draw()
   if(count%60==0)
   {
     float rand=random(50,250);
-    for(int i=0; i<4; i++)
+    for(int i=0; i<round(random(1,3))*4; i++)
      spikes.add(new Spike(width+rand+i*12,height-75));
   }
     
@@ -116,15 +117,17 @@ void beginContact(Contact cp)
   Object o1 = b1.getUserData();
   Object o2 = b2.getUserData();
   
-  
-  //if((o1.getClass()==Spike.class && o2.getClass()==Player.class)|| (o2.getClass()==Spike.class && o1.getClass()==Player.class))
-  //{
-  //  //Spike s1 = (Spike) o1;
-  //  //s1.change();
-  //  //Player p2 = (Player) o2;
-  //  //p2.change();
-  //  println(frameRate);
-  //}
+  if (o1==null || o2==null)
+   {return;}
+   
+  if((o1.getClass()==Spike.class && o2.getClass()==Player.class)||(o2.getClass()==Spike.class && o1.getClass()==Player.class))
+  {
+    //Spike s1 = (Spike) o1;
+    //s1.change();
+    //Player p2 = (Player) o2;
+    //p2.change();
+    gameOver=true;
+  }
 }
 
 void endContact(Contact cp)
