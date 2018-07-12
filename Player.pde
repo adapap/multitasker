@@ -9,7 +9,7 @@ class Player
   {
     this.w=w; this.x=x;
     this.h=h; this.y=y;
-    makeBody(new Vec2(x,y));
+    makeBody(new Vec2(x,y),w,h);
     body.setUserData(this);
     this.left=false; this.right=false;
     this.r=r;
@@ -22,16 +22,19 @@ class Player
     
     imageMode(CENTER);
     pushMatrix();
-    translate(pos.x,pos.y-this.r);
+    translate(pos.x,pos.y);
     rotate(a);
     noFill(); stroke(0); strokeWeight(2);
-    ellipse(0,0,r*2,r*2);
     noStroke();
+
     if(count_<10)
      image(dino1,0,0);
     else
      image(dino2,0,0);
+
+     
     popMatrix();
+    if(!gameOver)
     count_++;
     if(count_>20)
      count_=0;
@@ -48,45 +51,26 @@ class Player
     return (pos.x<-w/2.0);
   }
   
-  void makeBody(Vec2 center)
+  void makeBody(Vec2 center, float w, float h)
   {
-    //PolygonShape sd = new PolygonShape();
-    //float box2dW = box2d.scalarPixelsToWorld(w/2);
-    //float box2dH = box2d.scalarPixelsToWorld(h/2);
-    //sd.setAsBox(box2dW,box2dH);
-    
-    //CircleShape cs = new CircleShape();
-    //cs.m_radius = box2d.scalarPixelsToWorld(this.r);
-    
-    
-    //FixtureDef fd = new FixtureDef();
-    //fd.shape=cs;
-    //fd.density=1;
-    //fd.friction=1;
-    //fd.restitution=0;
-    
-    //BodyDef bd = new BodyDef();
-    //bd.type=BodyType.DYNAMIC;
-    //bd.position.set(box2d.coordPixelsToWorld(center));
-    
-    //body=box2d.createBody(bd);
-    //body.createFixture(fd);
-    
-    BodyDef bd = new BodyDef();
-    bd.position = box2d.coordPixelsToWorld(center.x,center.y);
-    bd.type = BodyType.DYNAMIC;
-    body = box2d.world.createBody(bd);
-
-    CircleShape cs = new CircleShape();
-    cs.m_radius = box2d.scalarPixelsToWorld(r);
+    PolygonShape sd = new PolygonShape();
+    float box2dW = box2d.scalarPixelsToWorld(w/2);
+    float box2dH = box2d.scalarPixelsToWorld(h/2);
+    sd.setAsBox(box2dW,box2dH);
     
     FixtureDef fd = new FixtureDef();
-    fd.shape = cs;
-    fd.density = 1;
-    fd.friction = 1;
-    fd.restitution = 0;
+    fd.shape=sd;
+    fd.density=1;
+    fd.friction=1;
+    fd.restitution=0;
     
+    BodyDef bd = new BodyDef();
+    bd.type=BodyType.DYNAMIC;
+    bd.position.set(box2d.coordPixelsToWorld(center));
+    
+    body=box2d.createBody(bd);
     body.createFixture(fd);
+    
     
     //body.setLinearVelocity(new Vec2(random(10,20),random(40,50)));
     //body.setAngularVelocity(0);
@@ -95,9 +79,9 @@ class Player
   void move()
   {
     if(right)
-     this.applyForce(new Vec2(15000,0));
+     this.applyForce(new Vec2(20000,0));
     if(left)
-     this.applyForce(new Vec2(-15000,0));
+     this.applyForce(new Vec2(-20000,0));
   }
   
   void applyForce(Vec2 force)

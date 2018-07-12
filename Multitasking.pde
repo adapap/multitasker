@@ -9,9 +9,12 @@ import org.jbox2d.dynamics.contacts.*;
 Box2DProcessing box2d;
 ArrayList<Floor> floors = new ArrayList<Floor>();
 ArrayList<Spike> spikes = new ArrayList<Spike>();
+ArrayList<Diamond> diamonds = new ArrayList<Diamond>();
 Player player;
 double count=1;
-PImage dino1, dino2;
+int d_count=0, gamespeed=50;
+float score=0;
+PImage dino1, dino2, dino3, diamond, diamondS;
 boolean gameOver=false;
 
 void mousePressed()
@@ -37,6 +40,9 @@ void keyPressed()
   
   if(keyCode==RIGHT) player.right=true;
   if(keyCode==LEFT) player.left=true;
+  
+  if(gameOver && keyCode==32);
+   //restartGame();
 }
 
 void keyReleased()
@@ -55,9 +61,13 @@ void setup()
   floors.add(new Floor(width/2,height-25,width*2,50));
   floors.add(new Floor(width/2,height-350,width*2,50));
   player = new Player(100,height-85,70,70,35);
+  //diamonds.add(new Diamond(width,height-175));
   
   dino1=loadImage("data/dino1.png");
   dino2=loadImage("data/dino2.png");
+  dino3=loadImage("data/dino3.png");
+  diamond=loadImage("data/diamond.png");
+  diamondS=loadImage("data/diamondS.png");
 }
 
 void draw()
@@ -66,8 +76,13 @@ void draw()
   if(!gameOver)
   box2d.step();
   box2d.listenForCollisions();
+  //score+=1.0/60.0;
   fill(0); textAlign(LEFT); textSize(12);
-  text(frameRate,0,10);
+  //text(frameRate,0,10);
+  text("SCORE: "+floor(score),0,10);
+  imageMode(CORNER);
+  image(diamondS,5,20); textSize(18);
+  text(d_count,30,37);
   
   //floor
   for(Floor f : floors)
@@ -81,18 +96,26 @@ void draw()
   textAlign(CENTER);
   textSize(40);
   fill(0);
-  if(player.check())
+  if(gameOver)
   {
-    text("GAME OVER",width/2,height/2);
-    gameOver=true;
+    text("GAME OVER",width/2,height/2-100);
+    textSize(20);
+    text("Press any button to play again",width/2,height/2-50);
   }
   
   //obstacles
-  if(count%60==0)
+  if(count%(75*50.0/gamespeed)==0)
   {
     float rand=random(50,250);
     for(int i=0; i<round(random(1,3))*4; i++)
-     spikes.add(new Spike(width+rand+i*12,height-75));
+     spikes.add(new Spike(width+rand+i*12,height-60,1));
+    diamonds.add(new Diamond(width+rand+random(-100,100),height-random(150,200)));
+  }
+  else if((count+37)%(75*50.0/gamespeed)==0)
+  {
+    float rand=random(50,250);
+    for(int i=0; i<round(random(1,3))*4; i++)
+     spikes.add(new Spike(width+rand+i*12,height-315,2));
   }
     
   for(Spike s : spikes)
@@ -104,8 +127,44 @@ void draw()
   {
     Spike s = spikes.get(i);
     if(s.isDead())
+    {
       spikes.remove(i);
+      score++;
+    }
   }
+  
+  //diamonds
+  for(Diamond d : diamonds)
+   d.show();
+   
+  for(int i=diamonds.size()-1; i>=0; i--)
+  {
+    Diamond d = diamonds.get(i);
+    if(d.isDead())
+    {
+      diamonds.remove(i);
+    }
+    if(d.dead)
+    {
+     d.killBody();
+     diamonds.remove(i);
+    }
+  }
+}
+
+void restartGame()
+{
+  //player = new Player(100,height-85,70,70,35);
+  for(int i=diamonds.size()-1; i>=0; i--)
+    diamonds.remove(i); 
+    
+  for(int i=spikes.size()-1; i>=0; i--)
+    spikes.remove(i); 
+    
+  score=0;
+  count=1;
+  
+  gameOver=false;
 }
 
 void beginContact(Contact cp) 
@@ -118,15 +177,26 @@ void beginContact(Contact cp)
   Object o2 = b2.getUserData();
   
   if (o1==null || o2==null)
-   {return;}
+   return;
    
   if((o1.getClass()==Spike.class && o2.getClass()==Player.class)||(o2.getClass()==Spike.class && o1.getClass()==Player.class))
   {
-    //Spike s1 = (Spike) o1;
-    //s1.change();
-    //Player p2 = (Player) o2;
-    //p2.change();
     gameOver=true;
+  }
+  
+  if(o1.getClass()==Diamond.class && o2.getClass()==Player.class)
+  {
+    Diamond d1=(Diamond) o1;
+    d_count++;
+    d1.applyForce(new Vec2(0,2000));
+    d1.animate=true;
+  }
+  else if(o2.getClass()==Diamond.class && o1.getClass()==Player.class)
+  {
+    Diamond d1=(Diamond) o2;
+    d_count++;
+    d1.applyForce(new Vec2(0,2000));
+    d1.animate=true;
   }
 }
 

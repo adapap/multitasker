@@ -1,8 +1,10 @@
 class Spike
 {
   Body body;
-  Spike(float x, float y)
+  int place;
+  Spike(float x, float y, int place)
   {
+    this.place=place;
     makeBody(new Vec2(x,y));
     body.setUserData(this);
   }
@@ -28,6 +30,9 @@ class Spike
     }
     endShape(CLOSE);
     popMatrix();
+    
+    //if(this.place==2)
+     this.applyForce(new Vec2(0,400));
   }
   
   void killBody()
@@ -53,12 +58,20 @@ class Spike
   
   void makeBody(Vec2 center)
   {
-     PolygonShape sd = new PolygonShape();
-     Vec2[] vertices = new Vec2[3];
-     vertices[0]=box2d.vectorPixelsToWorld(new Vec2(0,-50));
-     vertices[1]=box2d.vectorPixelsToWorld(new Vec2(-5,10));
-     vertices[2]=box2d.vectorPixelsToWorld(new Vec2(5,10));
-     
+    PolygonShape sd = new PolygonShape();
+    Vec2[] vertices = new Vec2[3];
+    if(this.place==1)
+    {
+       vertices[0]=box2d.vectorPixelsToWorld(new Vec2(0,-50));
+       vertices[1]=box2d.vectorPixelsToWorld(new Vec2(-5,10));
+       vertices[2]=box2d.vectorPixelsToWorld(new Vec2(5,10));
+    }
+    if(this.place==2)
+    {
+       vertices[0]=box2d.vectorPixelsToWorld(new Vec2(0,50));
+       vertices[1]=box2d.vectorPixelsToWorld(new Vec2(5,-10));
+       vertices[2]=box2d.vectorPixelsToWorld(new Vec2(-5,-10));
+    }
      sd.set(vertices, vertices.length);
      
      BodyDef bd = new BodyDef();
@@ -67,14 +80,15 @@ class Spike
      body = box2d.createBody(bd);
      
      FixtureDef fd = new FixtureDef();
+     fd.isSensor = true;
      fd.shape=sd;
-     fd.density=3000;
+     fd.density=0;
      fd.friction=0;
      fd.restitution=0;
 
      body.createFixture(fd);
 
-     body.setLinearVelocity(new Vec2(-50,0));
+     body.setLinearVelocity(new Vec2(-gamespeed,0));
   }
   
   void applyForce(Vec2 force)
