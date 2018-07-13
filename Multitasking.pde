@@ -14,7 +14,7 @@ Player player;
 double count=1;
 int d_count=0, gamespeed=50;
 float score=0;
-PImage dino1, dino2, dino3, diamond, diamondS;
+PImage dino1, dino2, dino3, diamond, diamondS, spike;
 boolean gameOver=false;
 
 void mousePressed()
@@ -68,6 +68,7 @@ void setup()
   dino3=loadImage("data/dino3.png");
   diamond=loadImage("data/diamond.png");
   diamondS=loadImage("data/diamondS.png");
+  spike=loadImage("assets/spike.png");
 }
 
 void draw()

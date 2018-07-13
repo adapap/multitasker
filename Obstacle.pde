@@ -1,37 +1,56 @@
+static class Obstacle {
+  static float lastObstaclePos = 0;
+  static float threshold = 150;
+  
+  static boolean canSpawn(float xpos) {
+    return xpos - lastObstaclePos >= threshold;  
+  }
+  
+}
+
 class Spike
 {
   Body body;
-  int place;
-  Spike(float x, float y, int place)
+  int orientation;
+  Spike(float x, float y, int orientation)
   {
-    this.place=place;
+    this.orientation = orientation;
+    //println(Obstacle.canSpawn(x));
     makeBody(new Vec2(x,y));
     body.setUserData(this);
   }
   
   void show()
   {
-    Vec2 pos=box2d.getBodyPixelCoord(body);
-    float a = body.getAngle()*-1;
+    Vec2 pos = box2d.getBodyPixelCoord(body);
+    float a = body.getAngle() *  -1;
     
     Fixture f = body.getFixtureList();
     PolygonShape ps = (PolygonShape) f.getShape();
     
     rectMode(CENTER);
     pushMatrix();
-    translate(pos.x, pos.y);
-    rotate(a);
+    float a_off=0;
+    float y_off=-20;
+    if(this.orientation==2)
+    {
+      a_off=PI;
+      y_off*=-1;
+    }
+    translate(pos.x, pos.y+y_off);
+    rotate(a+a_off);
     fill(0);
     noStroke();
-    beginShape();
-    for (int i = 0; i < ps.getVertexCount(); i++) {
-      Vec2 v = box2d.vectorWorldToPixels(ps.getVertex(i));
-      vertex(v.x, v.y);
-    }
-    endShape(CLOSE);
+    image(spike,0,0);
+    //beginShape();
+    //for (int i = 0; i < ps.getVertexCount(); i++) {
+    //  Vec2 v = box2d.vectorWorldToPixels(ps.getVertex(i));
+    //  vertex(v.x, v.y);
+    //}
+    //endShape(CLOSE);
     popMatrix();
     
-    //if(this.place==2)
+    //if(this.orientation==2)
      this.applyForce(new Vec2(0,400));
   }
   
@@ -60,13 +79,13 @@ class Spike
   {
     PolygonShape sd = new PolygonShape();
     Vec2[] vertices = new Vec2[3];
-    if(this.place==1)
+    if(this.orientation==1)
     {
        vertices[0]=box2d.vectorPixelsToWorld(new Vec2(0,-50));
        vertices[1]=box2d.vectorPixelsToWorld(new Vec2(-5,10));
        vertices[2]=box2d.vectorPixelsToWorld(new Vec2(5,10));
     }
-    if(this.place==2)
+    if(this.orientation==2)
     {
        vertices[0]=box2d.vectorPixelsToWorld(new Vec2(0,50));
        vertices[1]=box2d.vectorPixelsToWorld(new Vec2(5,-10));
