@@ -5,12 +5,12 @@ static class Obstacle {
   static boolean canSpawn(float xpos) {
     return xpos - lastObstaclePos >= threshold;  
   }
-  
 }
 
 class Spike
 {
   Body body;
+  Vec2 pos;
   int orientation;
   Spike(float x, float y, int orientation)
   {
@@ -22,7 +22,7 @@ class Spike
   
   void show()
   {
-    Vec2 pos = box2d.getBodyPixelCoord(body);
+    pos = box2d.getBodyPixelCoord(body);
     float a = body.getAngle() *  -1;
     
     Fixture f = body.getFixtureList();
@@ -61,7 +61,7 @@ class Spike
   
   boolean isDead()
   {
-    Vec2 pos=box2d.getBodyPixelCoord(body);
+    pos = box2d.getBodyPixelCoord(body);
     if(pos.x<-100) 
     {
       killBody();

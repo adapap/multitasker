@@ -17,6 +17,8 @@ float score=0;
 PImage dino1, dino2, dino3, diamond, diamondS, spike;
 boolean gameOver=false;
 
+int isCeiling = 1;
+
 void mousePressed()
 {
 }
@@ -105,23 +107,32 @@ void draw()
   }
   
   //obstacles
-  if(count%(75*50.0/gamespeed)==0)
-  {
-    float rand=random(50,250);
-    for(int i=0; i<round(random(1,3))*4; i++)
-     spikes.add(new Spike(width+rand+i*12,height-60,1));
-    diamonds.add(new Diamond(width+rand+random(-100,100),height-random(150,200)));
+  HashMap<String, Float> spawnChances = new HashMap<String, Float>();
+  spawnChances.put("spike", 0.1);
+  // spawnChances.put("diamond", 0.25);
+  
+  if (random(1) <= spawnChances.get("spike")) {
+    if (Obstacle.canSpawn(width)) {
+      isCeiling ^= 1; 
+      int orientation = isCeiling + 1;
+      int heightDiff = orientation == 1 ? 60 : 315;
+      float groupSize = round(random(1,3) * 4);
+      for (int i=0; i < groupSize; i++) {
+        spikes.add(new Spike(width + i*12, height - heightDiff, orientation));
+      }
+      if (orientation == 1) {
+        diamonds.add(new Diamond(width + random(-100,100), height - random(150,200)));
+      }
+    }
   }
-  else if((count+37)%(75*50.0/gamespeed)==0)
-  {
-    float rand=random(50,250);
-    for(int i=0; i<round(random(1,3))*4; i++)
-     spikes.add(new Spike(width+rand+i*12,height-315,2));
-  }
-    
+  
+  float maxPos=0;
   for(Spike s : spikes)
   {
-    s.show(); 
+    s.show();
+    if(s.pos.x>maxPos)
+     maxPos=s.pos.x;
+    Obstacle.lastObstaclePos=maxPos;
   }
   
   for(int i=spikes.size()-1; i>=0; i--)
