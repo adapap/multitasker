@@ -25,8 +25,7 @@ class Player
     translate(pos.x,pos.y);
     rotate(a);
     noFill(); stroke(0); strokeWeight(2);
-    noStroke();
-
+ 
     if(count_<10)
      image(dino1,0,0);
     else
@@ -69,8 +68,7 @@ class Player
     bd.position.set(box2d.coordPixelsToWorld(center));
     
     body=box2d.createBody(bd);
-    body.createFixture(fd);
-    
+    body.createFixture(fd);   
     
     //body.setLinearVelocity(new Vec2(random(10,20),random(40,50)));
     //body.setAngularVelocity(0);

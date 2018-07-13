@@ -19,16 +19,24 @@ class Spike
     
     rectMode(CENTER);
     pushMatrix();
-    translate(pos.x, pos.y);
-    rotate(a);
+    float a_off=0;
+    float y_off=-20;
+    if(this.place==2)
+    {
+      a_off=PI;
+      y_off*=-1;
+    }
+    translate(pos.x, pos.y+y_off);
+    rotate(a+a_off);
     fill(0);
     noStroke();
-    beginShape();
-    for (int i = 0; i < ps.getVertexCount(); i++) {
-      Vec2 v = box2d.vectorWorldToPixels(ps.getVertex(i));
-      vertex(v.x, v.y);
-    }
-    endShape(CLOSE);
+    image(spike,0,0);
+    //beginShape();
+    //for (int i = 0; i < ps.getVertexCount(); i++) {
+    //  Vec2 v = box2d.vectorWorldToPixels(ps.getVertex(i));
+    //  vertex(v.x, v.y);
+    //}
+    //endShape(CLOSE);
     popMatrix();
     
     //if(this.place==2)

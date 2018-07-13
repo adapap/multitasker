@@ -10,12 +10,13 @@ Box2DProcessing box2d;
 ArrayList<Floor> floors = new ArrayList<Floor>();
 ArrayList<Spike> spikes = new ArrayList<Spike>();
 ArrayList<Diamond> diamonds = new ArrayList<Diamond>();
-Player player;
+ArrayList<Player> players = new ArrayList<Player>();
+//Player player;
 double count=1;
 int d_count=0, gamespeed=50;
 float score=0;
-PImage dino1, dino2, dino3, diamond, diamondS;
-boolean gameOver=false;
+PImage dino1, dino2, dino3, diamond, diamondS, spike;
+boolean gameOver;
 
 void mousePressed()
 {
@@ -26,7 +27,8 @@ void keyPressed()
   if(keyCode==32)
   {
     Vec2 force = new Vec2(0,2000000);
-    player.applyForce(force);
+    for(Player player : players)
+     player.applyForce(force);
     for(Spike s : spikes)
     {
      //s.body.setLinearVelocity(new Vec2(0,0));
@@ -37,18 +39,23 @@ void keyPressed()
      //s.applyForce(new Vec2(x_off,10000000));
     }
   }
+  for(Player player : players)
+  {
+    if(keyCode==RIGHT) player.right=true;
+    if(keyCode==LEFT) player.left=true;
+  }
   
-  if(keyCode==RIGHT) player.right=true;
-  if(keyCode==LEFT) player.left=true;
-  
-  if(gameOver && keyCode==32);
+  //if(gameOver && keyCode==32)
    //restartGame();
 }
 
 void keyReleased()
 {
-  if(keyCode==RIGHT) player.right=false;
-  if(keyCode==LEFT) player.left=false;
+  for(Player player : players)
+  {
+    if(keyCode==RIGHT) player.right=false;
+    if(keyCode==LEFT) player.left=false;
+  }
 }
 
 void setup()
@@ -57,10 +64,12 @@ void setup()
   box2d = new Box2DProcessing(this);
   box2d.createWorld();
   box2d.setGravity(0,-400);
+  gameOver=false;
   
   floors.add(new Floor(width/2,height-25,width*2,50));
   floors.add(new Floor(width/2,height-350,width*2,50));
-  player = new Player(100,height-85,70,70,35);
+  //player = new Player(100,height-85,70,70,35);
+  players.add(new Player(100,height-85,70,70,35));
   //diamonds.add(new Diamond(width,height-175));
   
   dino1=loadImage("data/dino1.png");
@@ -68,6 +77,7 @@ void setup()
   dino3=loadImage("data/dino3.png");
   diamond=loadImage("data/diamond.png");
   diamondS=loadImage("data/diamondS.png");
+  spike=loadImage("data/spike.png");
 }
 
 void draw()
@@ -91,8 +101,11 @@ void draw()
   }
   
   //player
-  player.show();
-  player.move();
+  for(Player player : players)
+  {
+    player.show();
+    player.move();
+  }
   textAlign(CENTER);
   textSize(40);
   fill(0);
@@ -155,6 +168,9 @@ void draw()
 void restartGame()
 {
   //player = new Player(100,height-85,70,70,35);
+  for(int i=players.size()-1; i>=0; i--)
+    players.remove(i); 
+  
   for(int i=diamonds.size()-1; i>=0; i--)
     diamonds.remove(i); 
     
@@ -163,6 +179,8 @@ void restartGame()
     
   score=0;
   count=1;
+  
+  players.add(new Player(100,height-85,70,70,35));
   
   gameOver=false;
 }

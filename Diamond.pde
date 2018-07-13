@@ -27,6 +27,7 @@ class Diamond
     rotate(a);
     tint(255,this.alpha);
     image(diamond,0,0);
+    tint(255,255);
     popMatrix();
     if(this.animate && this.alpha>0)
      this.alpha-=15;
