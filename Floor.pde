@@ -2,6 +2,8 @@ class Floor
 {
   float x, y, w, h;
   Body b;
+  int offset;
+  PImage dirtTexture = loadImage("assets/misc/dirt.png");
   
   Floor(float x, float y, float w, float h)
   {
@@ -9,6 +11,7 @@ class Floor
     this.y=y;
     this.w=w;
     this.h=h;
+    this.offset=0;
     
     PolygonShape sd = new PolygonShape();
     float box2dW = box2d.scalarPixelsToWorld(w/2);
@@ -23,11 +26,21 @@ class Floor
     b.createFixture(sd, 1);
   }
   
-  void show()
+    void show()
   {
-    fill(200);
     noStroke();
     rectMode(CENTER);
-    rect(this.x, this.y, this.w, this.h);
+    imageMode(CENTER);
+    for(int i=0; i<=this.w; i+=50)
+    {
+     //if(i>width/2)
+     //  fill(200,width-i);
+     //else
+     //  fill(200,i);
+     //rect(i,this.y,1,this.h);
+     image(dirtTexture,i-this.offset%50,this.y);
+    }
+    if(gameState.get("active")==1)
+    offset+=7;
   }
 }

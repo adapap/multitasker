@@ -19,7 +19,7 @@ class Player
     if (this.spawned) {
       killBody();
     }
-    this.x = 100;
+    this.x = 200;
     this.y = height - 85;
     this.r = 35;
     makeBody(new Vec2(this.x, this.y), this.r);

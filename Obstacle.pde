@@ -1,6 +1,6 @@
 static class Obstacle {
   static float lastObstaclePos = 0;
-  static float threshold = 150;
+  static float threshold = 50;
   
   static int spikeIsCeiling = 1;
   
@@ -54,7 +54,7 @@ class Spike
     popMatrix();
     
     //if(this.orientation==2)
-    this.applyForce(forces.get("idk?"));
+    this.applyForce(forces.get("antiGravity"));
     this.inAndOut();
   }
   

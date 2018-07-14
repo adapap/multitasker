@@ -1,10 +1,10 @@
 class Diamond
 {
   boolean dead, animate;
-  boolean readyToFadeIn = false,
+  boolean readyToFadeIn  = false,
           readyToFadeOut = false,
-          doneFadingIn = false,
-          doneFadingOut = false;
+          doneFadingIn   = false,
+          doneFadingOut  = false;
   int startTick;
   int animSpeed = 90;
   PImage diamondSprite = loadImage("assets/misc/diamond.png");
@@ -42,7 +42,7 @@ class Diamond
     if (this.animate && this.alpha > 0)
      this.alpha -= 15;
      
-    this.applyForce(forces.get("idk?"));
+    this.applyForce(forces.get("antiGravity"));
     
     int tickDiff = gameState.get("tick") - startTick;
     if (tickDiff % 180 == 0) {

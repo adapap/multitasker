@@ -11,7 +11,6 @@ ArrayList<Floor> floors = new ArrayList<Floor>();
 ArrayList<Spike> spikes = new ArrayList<Spike>();
 ArrayList<Diamond> diamonds = new ArrayList<Diamond>();
 Player player;
-
 // The following are containers for reference throughout the game
 // Collection of forces used
 HashMap<String, Vec2> forces = new HashMap<String, Vec2>();
@@ -28,18 +27,8 @@ void mousePressed()
 
 void keyPressed()
 {
-  if(keyCode==keyCodes.get("SPACE"))
-  {
+  if(keyCode==keyCodes.get("SPACE")) {
     player.applyForce(forces.get("playerJump"));
-    /* for(Spike s : spikes)
-    {
-     s.body.setLinearVelocity(new Vec2(0,0));
-     Vec2 pos=box2d.getBodyPixelCoord(s.body);
-     float d=dist(pos.x,pos.y,height/2,pos.y);
-     float x_off=map(d,0,width/2,10000000,0);
-     if(pos.x<width/2) x_off*=-1;
-     s.applyForce(new Vec2(x_off,10000000));
-    } */
   }
   
   if (keyCode==RIGHT) {
@@ -66,11 +55,10 @@ void keyReleased()
 
 void setup()
 {
-  sprites.put("diamondIcon", loadImage("assets/misc/diamondSmall.png"));
-  
+  sprites.put("diamondIcon", loadImage("assets/misc/diamondSmall.png")); 
   forces.put("playerJump", new Vec2(0, 2E6));
   forces.put("diamondAnimation", new Vec2(0, 2E3));
-  forces.put("idk?", new Vec2(0, 400));
+  forces.put("antiGravity", new Vec2(0, 400));
   
   keyCodes.set("SPACE", 32);
   
@@ -91,7 +79,7 @@ void setup()
 void draw()
 {
   // General rendering of background and scores
-  background(255);
+  background(135,206,250);
   if(gameState.get("active")==1) {
     box2d.step();
     box2d.listenForCollisions();
@@ -125,7 +113,7 @@ void draw()
   if(gameState.get("active") == 0) {
     text("GAME OVER", width/2, height/2 - 100);
     textSize(20);
-    text("Press any button (SPACE) to play again", width/2, height/2 - 50);
+    text("Press SPACE to play again", width/2, height/2 - 50);
   }
   
   // Obstacle Logic
