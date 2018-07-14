@@ -14,6 +14,11 @@ class Spike
   Body body;
   Vec2 pos;
   int orientation;
+  float alpha;
+  boolean readyToFadeIn = false,
+          readyToFadeOut = false,
+          doneFadingIn = false,
+          doneFadingOut = false;
   PImage sprite = loadImage("assets/obstacles/spike.png");
   Spike(float x, float y, int orientation)
   {
@@ -43,17 +48,36 @@ class Spike
     rotate(a+a_off);
     fill(0);
     noStroke();
+    tint(255, this.alpha);
     image(sprite, 0, 0);
-    //beginShape();
-    //for (int i = 0; i < ps.getVertexCount(); i++) {
-    //  Vec2 v = box2d.vectorWorldToPixels(ps.getVertex(i));
-    //  vertex(v.x, v.y);
-    //}
-    //endShape(CLOSE);
+    tint(255, 255);
     popMatrix();
     
     //if(this.orientation==2)
     this.applyForce(forces.get("idk?"));
+    this.inAndOut();
+  }
+  
+  void inAndOut()
+  {
+    if(pos.x <= width && !doneFadingIn)
+     readyToFadeIn=true;
+    
+    if(readyToFadeIn)
+      this.alpha += 15;
+      
+    if(this.alpha >= 255 && readyToFadeIn)
+    {
+      this.alpha=255;
+      readyToFadeIn=false;
+      doneFadingIn=true;
+    }
+    
+    if(pos.x<=80 && !doneFadingOut)
+     readyToFadeOut=true;
+     
+    if(readyToFadeOut)
+     this.alpha-=25;
   }
   
   void killBody() {

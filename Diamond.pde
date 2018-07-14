@@ -1,6 +1,11 @@
 class Diamond
 {
   boolean dead, animate;
+  boolean readyToFadeIn = false,
+          readyToFadeOut = false,
+          doneFadingIn = false,
+          doneFadingOut = false;
+  int startTick;
   int animSpeed = 90;
   PImage diamondSprite = loadImage("assets/misc/diamond.png");
   
@@ -18,6 +23,7 @@ class Diamond
     makeBody(new Vec2(x,y), 21, 30);
     body.setUserData(this);
     this.applyForce(new Vec2(0, -animSpeed));
+    this.startTick = gameState.get("tick");
   }
   
   void show()
@@ -31,18 +37,43 @@ class Diamond
     rotate(a);
     tint(255,this.alpha);
     image(this.diamondSprite, 0, 0);
+    tint(255, 255);
     popMatrix();
     if (this.animate && this.alpha > 0)
      this.alpha -= 15;
      
     this.applyForce(forces.get("idk?"));
     
-    if (gameState.get("tick") % 180 == 0) {
+    int tickDiff = gameState.get("tick") - startTick;
+    if (tickDiff % 180 == 0) {
      this.applyForce(new Vec2(0, animSpeed * 2));
     }
-    else if (gameState.get("tick") % 180 == 90) {
+    else if (tickDiff % 180 == 90) {
      this.applyForce(new Vec2(0, animSpeed * -2));
     }
+    this.inAndOut();
+  }
+  
+  void inAndOut()
+  {
+    if(pos.x <= width && !doneFadingIn)
+     readyToFadeIn=true;
+    
+    if(readyToFadeIn)
+      this.alpha += 15;
+      
+    if(this.alpha >= 255 && readyToFadeIn)
+    {
+      this.alpha=255;
+      readyToFadeIn=false;
+      doneFadingIn=true;
+    }
+    
+    if(pos.x<=80 && !doneFadingOut)
+     readyToFadeOut=true;
+     
+    if(readyToFadeOut)
+     this.alpha-=25;
   }
   
   void killBody()
