@@ -2,6 +2,8 @@ static class Obstacle {
   static float lastObstaclePos = 0;
   static float threshold = 150;
   
+  static int spikeIsCeiling = 1;
+  
   static boolean canSpawn(float xpos) {
     return xpos - lastObstaclePos >= threshold;  
   }
@@ -12,10 +14,10 @@ class Spike
   Body body;
   Vec2 pos;
   int orientation;
+  PImage sprite = loadImage("assets/obstacles/spike.png");
   Spike(float x, float y, int orientation)
   {
     this.orientation = orientation;
-    //println(Obstacle.canSpawn(x));
     makeBody(new Vec2(x,y));
     body.setUserData(this);
   }
@@ -23,10 +25,10 @@ class Spike
   void show()
   {
     pos = box2d.getBodyPixelCoord(body);
-    float a = body.getAngle() *  -1;
+    float a = -body.getAngle();
     
-    Fixture f = body.getFixtureList();
-    PolygonShape ps = (PolygonShape) f.getShape();
+    //Fixture f = body.getFixtureList();
+    //PolygonShape ps = (PolygonShape) f.getShape();
     
     rectMode(CENTER);
     pushMatrix();
@@ -41,7 +43,7 @@ class Spike
     rotate(a+a_off);
     fill(0);
     noStroke();
-    image(spike,0,0);
+    image(sprite, 0, 0);
     //beginShape();
     //for (int i = 0; i < ps.getVertexCount(); i++) {
     //  Vec2 v = box2d.vectorWorldToPixels(ps.getVertex(i));
@@ -51,18 +53,16 @@ class Spike
     popMatrix();
     
     //if(this.orientation==2)
-     this.applyForce(new Vec2(0,400));
+    this.applyForce(forces.get("idk?"));
   }
   
-  void killBody()
-  {
+  void killBody() {
     box2d.destroyBody(body);
   }
   
-  boolean isDead()
-  {
+  boolean isDead() {
     pos = box2d.getBodyPixelCoord(body);
-    if(pos.x<-100) 
+    if(pos.x < -100) 
     {
       killBody();
       return true;
@@ -70,48 +70,33 @@ class Spike
     return false;
   }
   
-  void change()
-  {
-   gameOver=true; 
-  }
-  
   void makeBody(Vec2 center)
   {
     PolygonShape sd = new PolygonShape();
     Vec2[] vertices = new Vec2[3];
-    if(this.orientation==1)
-    {
-       vertices[0]=box2d.vectorPixelsToWorld(new Vec2(0,-50));
-       vertices[1]=box2d.vectorPixelsToWorld(new Vec2(-5,10));
-       vertices[2]=box2d.vectorPixelsToWorld(new Vec2(5,10));
-    }
-    if(this.orientation==2)
-    {
-       vertices[0]=box2d.vectorPixelsToWorld(new Vec2(0,50));
-       vertices[1]=box2d.vectorPixelsToWorld(new Vec2(5,-10));
-       vertices[2]=box2d.vectorPixelsToWorld(new Vec2(-5,-10));
-    }
-     sd.set(vertices, vertices.length);
+    int dir = this.orientation == 1 ? 1 : -1;
+    vertices[0]=box2d.vectorPixelsToWorld(new Vec2(dir * 0, dir * -50));
+    vertices[1]=box2d.vectorPixelsToWorld(new Vec2(dir * -5, dir * 10));
+    vertices[2]=box2d.vectorPixelsToWorld(new Vec2(dir * 5, dir * 10));
+    sd.set(vertices, vertices.length);
+    
+    BodyDef bd = new BodyDef();
+    bd.type = BodyType.DYNAMIC;
+    bd.position.set(box2d.coordPixelsToWorld(center));
+    body = box2d.createBody(bd);
      
-     BodyDef bd = new BodyDef();
-     bd.type = BodyType.DYNAMIC;
-     bd.position.set(box2d.coordPixelsToWorld(center));
-     body = box2d.createBody(bd);
-     
-     FixtureDef fd = new FixtureDef();
-     fd.isSensor = true;
-     fd.shape=sd;
-     fd.density=0;
-     fd.friction=0;
-     fd.restitution=0;
+    FixtureDef fd = new FixtureDef();
+    fd.isSensor = true;
+    fd.shape=sd;
+    fd.density=0;
+    fd.friction=0;
+    fd.restitution=0;
 
-     body.createFixture(fd);
-
-     body.setLinearVelocity(new Vec2(-gamespeed,0));
+    body.createFixture(fd);
+    body.setLinearVelocity(new Vec2(-gameState.get("speed"), 0));
   }
   
-  void applyForce(Vec2 force)
-  {
+  void applyForce(Vec2 force) {
       body.applyForceToCenter(force);
   }
 }
