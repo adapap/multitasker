@@ -1,4 +1,9 @@
-static class Obstacle {
+abstract static class Obstacle {
+  Body body;
+  Vec2 pos;
+  float alpha;
+  int score;
+  
   static float lastObstaclePos = 0;
   static float threshold = 50;
   
@@ -7,28 +12,29 @@ static class Obstacle {
   static boolean canSpawn(float xpos) {
     return xpos - lastObstaclePos >= threshold;  
   }
+  
+  abstract void show();
+  abstract void fade();
+  abstract boolean isDead();
+  abstract void killBody();
+  
+  void applyForce(Vec2 force) {
+    body.applyForceToCenter(force);
+  }
 }
 
-class Spike
+public class Spike extends Obstacle
 {
-  Body body;
-  Vec2 pos;
   int orientation;
-  float alpha;
-  boolean readyToFadeIn = false,
-          readyToFadeOut = false,
-          doneFadingIn = false,
-          doneFadingOut = false;
   PImage sprite = loadImage("assets/obstacles/spike.png");
-  Spike(float x, float y, int orientation)
-  {
+  Spike(float x, float y, int orientation) {
     this.orientation = orientation;
+    this.score = 2;
     makeBody(new Vec2(x,y));
     body.setUserData(this);
   }
   
-  void show()
-  {
+  void show() {
     pos = box2d.getBodyPixelCoord(body);
     float a = -body.getAngle();
     
@@ -55,29 +61,18 @@ class Spike
     
     //if(this.orientation==2)
     this.applyForce(forces.get("antiGravity"));
-    this.inAndOut();
+    this.fade();
   }
   
-  void inAndOut()
+  void fade()
   {
-    if(pos.x <= width && !doneFadingIn)
-     readyToFadeIn=true;
-    
-    if(readyToFadeIn)
-      this.alpha += 15;
-      
-    if(this.alpha >= 255 && readyToFadeIn)
-    {
-      this.alpha=255;
-      readyToFadeIn=false;
-      doneFadingIn=true;
+    if (pos.x <= width && this.alpha < 255) {
+      this.alpha += min(15, 255 - this.alpha);
     }
-    
-    if(pos.x<=80 && !doneFadingOut)
-     readyToFadeOut=true;
-     
-    if(readyToFadeOut)
-     this.alpha-=25;
+      
+    if (pos.x <= 80 && this.alpha > 0) {
+      this.alpha -= min(25, this.alpha);
+    }
   }
   
   void killBody() {
@@ -118,9 +113,5 @@ class Spike
 
     body.createFixture(fd);
     body.setLinearVelocity(new Vec2(-gameState.get("speed"), 0));
-  }
-  
-  void applyForce(Vec2 force) {
-      body.applyForceToCenter(force);
   }
 }

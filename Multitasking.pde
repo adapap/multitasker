@@ -8,14 +8,18 @@ import org.jbox2d.dynamics.contacts.*;
 
 Box2DProcessing box2d;
 ArrayList<Floor> floors = new ArrayList<Floor>();
-ArrayList<Spike> spikes = new ArrayList<Spike>();
+//ArrayList<Spike> spikes = new ArrayList<Spike>();
+ArrayList<Obstacle> obstacles = new ArrayList<Obstacle>();
 ArrayList<Diamond> diamonds = new ArrayList<Diamond>();
 Player player;
+
 // The following are containers for reference throughout the game
 // Collection of forces used
 HashMap<String, Vec2> forces = new HashMap<String, Vec2>();
 // Collection of static (non-interactive) sprites
 HashMap<String, PImage> sprites = new HashMap<String, PImage>();
+// Entity spawn chances
+HashMap<String, Float> spawnChances = new HashMap<String, Float>();
 // Names for common keyboard keys
 IntDict keyCodes = new IntDict();
 // Values such as score or the current tick
@@ -56,14 +60,17 @@ void keyReleased()
 void setup()
 {
   sprites.put("diamondIcon", loadImage("assets/misc/diamondSmall.png")); 
+  
   forces.put("playerJump", new Vec2(0, 2E6));
   forces.put("diamondAnimation", new Vec2(0, 2E3));
   forces.put("antiGravity", new Vec2(0, 400));
   
+  spawnChances.put("spike", 0.1);
+  
   keyCodes.set("SPACE", 32);
   
   // Initiate the world for the game
-  size(1280,720);
+  size(1280, 720, P2D);
   box2d = new Box2DProcessing(this);
   box2d.createWorld();
   box2d.setGravity(0,-400);
@@ -79,7 +86,7 @@ void setup()
 void draw()
 {
   // General rendering of background and scores
-  background(135,206,250);
+  background(135, 206, 250);
   if(gameState.get("active")==1) {
     box2d.step();
     box2d.listenForCollisions();
@@ -117,10 +124,6 @@ void draw()
   }
   
   // Obstacle Logic
-  HashMap<String, Float> spawnChances = new HashMap<String, Float>();
-  spawnChances.put("spike", 0.1);
-  // spawnChances.put("diamond", 0.25);
-  
   if (random(1) <= spawnChances.get("spike")) {
     if (Obstacle.canSpawn(width)) {
       Obstacle.spikeIsCeiling ^= 1; 
@@ -128,7 +131,7 @@ void draw()
       int heightDiff = orientation == 1 ? 53 : 322;
       float groupSize = round(random(1,3) * 4);
       for (int i=0; i < groupSize; i++) {
-        spikes.add(new Spike(width + i*12, height - heightDiff, orientation));
+        obstacles.add(new Spike(width + i*12, height - heightDiff, orientation));
       }
       if (orientation == 1) {
         diamonds.add(new Diamond(width + random(-100,100), height - random(150,200)));
@@ -138,36 +141,34 @@ void draw()
   
   // Obstacle rendering
   float maxPos = 0;
-  for(Spike s : spikes)
-  {
-    s.show();
-    if(s.pos.x > maxPos) {
-      maxPos = s.pos.x;
+  for(int i=obstacles.size() - 1; i>=0; i--) {
+    Obstacle o = obstacles.get(i);
+    o.show();
+    if(o.pos.x > maxPos) {
+      maxPos = o.pos.x;
+    }
+    
+    if (o.isDead()) {
+      gameState.add("score", o.score);
+      obstacles.remove(i);
     }
   }
   Obstacle.lastObstaclePos = maxPos;
   
-  for(int i=spikes.size()-1; i>=0; i--)
-  {
-    Spike s = spikes.get(i);
-    if(s.isDead())
-    {
-      spikes.remove(i);
-      gameState.increment("score");
+  // Collectible rendering
+  for (int i=diamonds.size() - 1; i>=0; i--) {
+    Diamond d = diamonds.get(i);
+    d.show();
+    
+    if (d.isDead()) {
+      diamonds.remove(i);
     }
   }
   
-  // Collectible rendering
-  for(Diamond d : diamonds) {
-    d.show();
-  }
-   
-  for(int i=diamonds.size()-1; i>=0; i--)
-  {
-    Diamond d = diamonds.get(i);
-    if(d.isDead())
-    {
-      diamonds.remove(i);
+  if (gameState.get("active") == 1) {
+    int tick = gameState.get("tick");
+    if (tick % 5 == 0) {
+      gameState.increment("score");
     }
   }
 }
@@ -189,11 +190,14 @@ void resetGame()
     diamonds.remove(i);
   }
     
-  for(int i=spikes.size()-1; i>=0; i--) {
-    Spike s = spikes.get(i);
-    s.killBody();
-    spikes.remove(i);
+  for(int i=obstacles.size()-1; i>=0; i--) {
+    Obstacle o = obstacles.get(i);
+    o.killBody();
+    obstacles.remove(i);
   }
+}
+boolean hasClass(Object a, Object b, Class c) {
+  return (c.isInstance(a) || c.isInstance(b));
 }
 
 void beginContact(Contact cp) 
@@ -205,22 +209,17 @@ void beginContact(Contact cp)
   Object o1 = b1.getUserData();
   Object o2 = b2.getUserData();
   
-  if (o1==null || o2==null) {
+  if ((o1==null || o2==null) || !hasClass(o1, o2, Player.class)) {
     return;
   }
-  Class o1c = o1.getClass();
-  Class o2c = o2.getClass();
-  
-  boolean Player_Obstacle = (o1c==Spike.class && o2c==Player.class)||(o2c==Spike.class && o1c==Player.class);
-  boolean Player_Collectible = (o1c==Diamond.class && o2c==Player.class)||(o2c==Diamond.class && o1c==Player.class);
    
-  if (Player_Obstacle) {
+  if (hasClass(o1, o2, Obstacle.class)) {
     gameState.set("active", 0);
   }
   
-  if (Player_Collectible) {
+  if (hasClass(o1, o2, Diamond.class)) {
     Diamond d;
-    if (o1c==Diamond.class) {
+    if (o1 instanceof Diamond) {
       d = (Diamond) o1;
     }
     else {
