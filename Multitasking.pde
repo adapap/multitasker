@@ -30,6 +30,8 @@ IntDict gameState = new IntDict();
 // Powerups/cheats/mods
 HashMap<String, Boolean> modifiers = new HashMap<String, Boolean>();
 
+CameraMod cam;
+
 void mousePressed()
 {
 }
@@ -59,16 +61,10 @@ void keyReleased()
   }
 }
 
-void resetCamera() {
-  camera(width/2.0, height/2.0, (height/2.0) / tan(PI*30.0 / 180.0),
-         width/2.0, height/2.0, 0,
-         0, 1, 0);
-}
-
 void setup()
 {
   //GODMODE
-  modifiers.put("godmode", false);
+  modifiers.put("godmode", true);
 
   sprites.put("diamondIcon", loadImage("assets/misc/diamondSmall.png")); 
   
@@ -93,12 +89,10 @@ void setup()
   floors.add(new Floor(width/2, height-25, width*2, 50));
   floors.add(new Floor(width/2, height-350, width*2, 50));
   player = new Player();
-  // eye, center, up
-  // camera(width/2.0, height/2.0, (height/2.0) / tan(PI*30.0 / 180.0),
-  //        width/2.0, height/2.0, 0,
-  //        0, 1, 0);
   
+  cam = new CameraMod();
   resetGame();
+  cam.rotate(-360);
 }
 
 void draw()
@@ -193,6 +187,14 @@ void draw()
       diamonds.remove(i);
     }
   }
+
+  // Camera manipulation
+  // eye, center, up
+  // ? ? zoom
+  // rotate along axis
+  // rotate, flip vertical (-1/1), none
+
+  //209.965 : reverse?
   
   if (gameState.get("active") == 1) {
     if (tick % 5 == 0) {
@@ -203,6 +205,7 @@ void draw()
 
 void resetGame()
 {
+  cam.resetCamera();
   gameState.set("tick", 1);
   gameState.set("score", 0);
   gameState.set("diamondsCollected", 0);
