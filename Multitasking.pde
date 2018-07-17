@@ -30,7 +30,8 @@ IntDict gameState = new IntDict();
 // Powerups/cheats/mods
 HashMap<String, Boolean> modifiers = new HashMap<String, Boolean>();
 
-CameraMod cam;
+Camera cam;
+int a;
 
 void mousePressed()
 {
@@ -86,13 +87,22 @@ void setup()
   box2d.setGravity(0,-400);
   
   // Create boundaries (floors, temp.) and the player
-  floors.add(new Floor(width/2, height-25, width*2, 50));
-  floors.add(new Floor(width/2, height-350, width*2, 50));
+  floors.add(new Floor(width / 2, height - 25, width * 2, 50));
+  floors.add(new Floor(width / 2, height - 350, width * 2, 50));
   player = new Player();
   
-  cam = new CameraMod();
+  cam = new Camera();
   resetGame();
-  cam.rotate(-360);
+  a = 0;
+}
+
+void rotateGame(float deg) {
+  float ang = radians(deg);
+  float w2 = width / 2,
+        h2 = height / 2;
+  translate(w2, h2);
+  rotate(ang);
+  translate(-w2, -h2);
 }
 
 void draw()
