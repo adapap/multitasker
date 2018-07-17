@@ -65,6 +65,9 @@ class Floor
       if (gameState.get("water") < 2) {
         rotate(radians(-30));
       }
+      if (gameState.get("water") > 2 && gameState.get("water") < 6) {
+        rotate(radians(30));
+      }
       fill(30,144,255,100);
       rect(0,0,this.w,this.h);
       popMatrix();
@@ -76,18 +79,19 @@ class Floor
     if (this.pos == null) {
       return;
     }
-    if ((dir == 1 && this.pos.y > 900) || (dir == -1 && this.pos.y < 900)) {
+    if ((dir == 1 && this.pos.y > 900) || (dir == -1 && this.pos.y < 2000)) {
       body.setLinearVelocity(new Vec2(0, dir * rate));
     }
-    else if ((dir == 1 && this.pos.y > 0) || (dir == -1 && this.pos.y < 0)) {
-      body.setLinearVelocity(new Vec2(0, dir * rate * 10));
+    else if ((dir == 1 && this.pos.y > 0) || (dir == -1 && this.pos.y < 900)) {
+      body.setLinearVelocity(new Vec2(0, dir * 1000));
     }
     else if (gameState.get("water") == 1) {
       body.setLinearVelocity(new Vec2(0, 0));
       gameState.set("water", 2);
     }
-    else {
-      gameState.set("water", 3);
+    else if (gameState.get("water") == 4) {
+      body.setLinearVelocity(new Vec2(0, 0));
+      gameState.set("water", 5);
     }
   }
   

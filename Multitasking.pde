@@ -129,54 +129,37 @@ void draw()
   
   int tick = gameState.get("tick");
   int score = gameState.get("score");
+  int waterStage = gameState.get("water");
   // Obstacle Logic
-  if (random(1) <= spawnChances.get("spike")) {
-    if (Obstacle.canSpawn(width)) {
-      Obstacle.spikeIsCeiling ^= 1; 
-      int orientation = Obstacle.spikeIsCeiling + 1;
-      int heightDiff = orientation == 1 ? 52 : 323;
-      int groupSize = round(random(1,3)) * 4;
-      obstacles.add(new Spike(width, height - heightDiff, groupSize, orientation));
-      if (orientation == 1) {
-        diamonds.add(new Diamond(width + random(-100,100), height - random(150,200)));
+  if (waterStage == 3 || waterStage == 6 || (score <= 1000 && waterStage == 0)) {
+    // Spike
+    if (random(1) <= spawnChances.get("spike")) {
+      if (Obstacle.canSpawn(width)) {
+        Obstacle.spikeIsCeiling ^= 1; 
+        int orientation = Obstacle.spikeIsCeiling + 1;
+        int heightDiff = orientation == 1 ? 52 : 323;
+        int groupSize = round(random(1,3)) * 4;
+        obstacles.add(new Spike(width, height - heightDiff, groupSize, orientation));
+        if (orientation == 1) {
+          diamonds.add(new Diamond(width + random(-100,100), height - random(150,200)));
+        }
+      }
+    }
+    // Ball
+    if (score > 500) {
+      int randOffset = round(random(5, 8)) * 60;
+      if (tick - randOffset >= Obstacle.lastProjectileTick) {
+        // Spawn warning indicator
+        Obstacle.lastProjectileTick = tick;
+        float randHeight = random(100, 300);
+        obstacles.add(new Projectile(width, height - randHeight, 100, radians(180), 15));
       }
     }
   }
-
-  if (score > 500) {
-    int randOffset = round(random(5, 8)) * 60;
-    if (tick - randOffset >= Obstacle.lastProjectileTick) {
-      // Spawn warning indicator
-      Obstacle.lastProjectileTick = tick;
-      float randHeight = random(100, 300);
-      obstacles.add(new Projectile(width, height - randHeight, 100, radians(180), 15));
-    }
-  }
   
-  float angleRate = 0.25;
-  if (score > 1 && score < 3000) {
-    if (gameAngle < 30 && gameState.get("water") == 0) {
-      gameAngle += min(angleRate, 30 - gameAngle);
-    }
-    if (gameAngle == 30 && gameState.get("water") == 0) {
-      water = new Floor(0, 3.5 * height, 4 * width, 3 * height, true);
-      floors.add(water);
-      gameState.set("water", 1);
-    }
-    
-    if (gameState.get("water") == 1) {
-      water.changeLevel(50, 1);
-    }
-
-    if (gameAngle > 0 && gameState.get("water") == 2) {
-      gameAngle -= min(angleRate, gameAngle);
-    }
-
-    if (gameAngle == 0 && gameState.get("water") == 2) {
-      water.changeLevel(50, -1);
-    }
-    
-    rotateGame(gameAngle);
+  // Water
+  if (score > 1000) {
+    calculateWater();
   }
   
   // Floor rendering
@@ -201,8 +184,13 @@ void draw()
   for (int i=obstacles.size() - 1; i>=0; i--) {
     Obstacle o = obstacles.get(i);
     o.show();
-    if(o.pos.x > maxPos) {
-      maxPos = o.pos.x;
+    float dist = o.pos.x;
+    if (dist > maxPos) {
+      if (o instanceof Spike) {
+        Spike s = (Spike) o;
+        dist += s.groupSize * 5;
+      }
+      maxPos = dist;
     }
     
     if (o.isDead()) {
@@ -246,6 +234,7 @@ void resetGame()
   gameState.set("speed", 50);
   gameState.set("active", 1);
   gameState.set("water", 0);
+  gameState.set("waterScore", 0);
   gameAngle = 0;
   Obstacle.lastObstaclePos = 0;
   

@@ -77,13 +77,14 @@ class Player
   void move() {
     float leftBound = 100;
     float rightBound = 900;
+    float moveSpeed = 60;
     Vec2 vel = body.getLinearVelocity();
 
     if (dir == 1 && pos.x < rightBound) {
-      vel.x = dir * 50;
+      vel.x = dir * moveSpeed;
     }
     else if (dir == -1 && pos.x > leftBound) {
-      vel.x = dir * 50;
+      vel.x = dir * moveSpeed;
     }
     else {
       vel.x = 0;
