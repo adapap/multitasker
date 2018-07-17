@@ -69,8 +69,6 @@ public class Projectile extends Obstacle {
     noFill(); stroke(0); strokeWeight(1);
     
     ellipse(0, 0, 2 * r, 2 * r);
-
-    int tick = gameState.get("tick");
     applyForce(forces.get("antiGravity"));
      
     popMatrix();
@@ -101,44 +99,38 @@ public class Projectile extends Obstacle {
 public class Spike extends Obstacle
 {
   int orientation;
-  Spike(float x, float y, int orientation) {
+  int offset;
+  int groupSize;
+  Spike(float x, float y, int groupSize, int orientation) {
     this.orientation = orientation;
-    this.sprite = loadImage("assets/obstacles/spike.png");
-    this.score = 2;
+    this.groupSize = groupSize;
+    this.offset = 0;
+    this.sprite = loadImage("assets/obstacles/spike" + groupSize + ".png");
+    this.score = 2 * groupSize;
     makeBody(new Vec2(x,y));
     body.setUserData(this);
   }
   
   void show() {
     pos = box2d.getBodyPixelCoord(body);
-    float a = -body.getAngle();
     
     rectMode(CENTER);
     pushMatrix();
-    float a_off=0;
-    float y_off=-7.5;
-    if(this.orientation==2)
-    {
-      a_off=PI;
-      y_off*=-1;
+    float yOffset = -7.5;
+    float aOffset = 0;
+    if (this.orientation==2) {
+      yOffset *= -1;
+      aOffset = PI;
     }
-    translate(pos.x, pos.y + y_off);
-    rotate(0);
+    translate(pos.x, pos.y + yOffset);
     fill(0);
-    //noStroke();
     tint(255, this.alpha);
-    //image(sprite, 0, 0);
-    
-    Fixture f = body.getFixtureList();
-    PolygonShape ps = (PolygonShape) f.getShape();
-    noStroke();
-    fill(0, this.alpha);
-    beginShape();
-    for (int i = 0; i < ps.getVertexCount(); i++) {
-      Vec2 v = box2d.vectorWorldToPixels(ps.getVertex(i));
-      vertex(v.x, v.y);
-    }
-    endShape(CLOSE);
+
+    float imageX = 20 * groupSize / 4;
+    float imageY = -12.5;
+    rotate(aOffset);
+    imageMode(CENTER);
+    image(sprite, imageX, imageY);
     
     tint(255, 255);
     popMatrix();
@@ -150,12 +142,13 @@ public class Spike extends Obstacle
   void makeBody(Vec2 center)
   {
     PolygonShape sd = new PolygonShape();
-    Vec2[] vertices = new Vec2[3];
+    Vec2[] vertices = new Vec2[4];
     int dir = this.orientation == 1 ? 1 : -1;
     // To-do: trapezoid render
-    vertices[0]=box2d.vectorPixelsToWorld(new Vec2(dir * 0, dir * -50));
-    vertices[1]=box2d.vectorPixelsToWorld(new Vec2(dir * -5, dir * 10));
-    vertices[2]=box2d.vectorPixelsToWorld(new Vec2(dir * 5, dir * 10));
+    vertices[0]=box2d.vectorPixelsToWorld(new Vec2(dir * 0, dir * 10));
+    vertices[1]=box2d.vectorPixelsToWorld(new Vec2(dir * 5, dir * -35));
+    vertices[2]=box2d.vectorPixelsToWorld(new Vec2(dir * (groupSize * 10 - 5), dir * -35));
+    vertices[3]=box2d.vectorPixelsToWorld(new Vec2(dir * (groupSize * 10), dir * 10));
     sd.set(vertices, vertices.length);
     
     BodyDef bd = new BodyDef();

@@ -2,6 +2,7 @@ class Floor
 {
   float x, y, w, h;
   Body body;
+  Vec2 pos;
   int offset;
   boolean isWater;
   PImage dirtTexture = loadImage("assets/misc/dirt.png");
@@ -20,28 +21,37 @@ class Floor
     float box2dH = box2d.scalarPixelsToWorld(h/2);
     sd.setAsBox(box2dW,box2dH);
     
-    BodyDef bd = new BodyDef();
-    bd.type=BodyType.STATIC;
-    bd.position.set(box2d.coordPixelsToWorld(x,y));
-    body=box2d.createBody(bd);
-    
     FixtureDef fd = new FixtureDef();
     fd.shape=sd;
     fd.density=0;
     fd.friction=0;
     fd.restitution=0;
-    if(isWater) fd.isSensor=true;
+    if (isWater) {
+      fd.isSensor=true;
+    }
+    
+    BodyDef bd = new BodyDef();
+    if (!isWater) {
+      bd.type=BodyType.STATIC;
+    }
+    else {
+      bd.type = BodyType.DYNAMIC;
+    }
+    bd.position.set(box2d.coordPixelsToWorld(x,y));
+    body=box2d.createBody(bd);
     body.createFixture(fd);
+    body.setUserData(this);
   }
   
-    void show()
+  void show()
   {
+    pos = box2d.getBodyPixelCoord(body);
     noStroke();
     rectMode(CENTER);
     if(!isWater)
     {
       imageMode(CENTER);
-      for(int i=0; i<=this.w; i+=50)
+      for(int i=-100; i<=this.w; i+=50)
       {
        image(dirtTexture,i-this.offset%50,this.y);
       }
@@ -51,11 +61,37 @@ class Floor
     else
     {
       pushMatrix();
-      translate(this.x,this.y);
-      rotate(radians(-30));
+      translate(pos.x, pos.y);
+      if (gameState.get("water") < 2) {
+        rotate(radians(-30));
+      }
       fill(30,144,255,100);
       rect(0,0,this.w,this.h);
       popMatrix();
+      applyForce(forces.get("antiGravity"));
     }
+  }
+  
+  void changeLevel(float rate, int dir) {
+    if (this.pos == null) {
+      return;
+    }
+    if ((dir == 1 && this.pos.y > 900) || (dir == -1 && this.pos.y < 900)) {
+      body.setLinearVelocity(new Vec2(0, dir * rate));
+    }
+    else if ((dir == 1 && this.pos.y > 0) || (dir == -1 && this.pos.y < 0)) {
+      body.setLinearVelocity(new Vec2(0, dir * rate * 10));
+    }
+    else if (gameState.get("water") == 1) {
+      body.setLinearVelocity(new Vec2(0, 0));
+      gameState.set("water", 2);
+    }
+    else {
+      gameState.set("water", 3);
+    }
+  }
+  
+  void applyForce(Vec2 force) {
+    body.applyForceToCenter(force);
   }
 }

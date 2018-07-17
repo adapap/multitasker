@@ -15,6 +15,7 @@ ArrayList<Floor> floors = new ArrayList<Floor>();
 ArrayList<Obstacle> obstacles = new ArrayList<Obstacle>();
 ArrayList<Diamond> diamonds = new ArrayList<Diamond>();
 Player player;
+Floor water;
 
 // The following are containers for reference throughout the game
 // Collection of forces used
@@ -27,6 +28,7 @@ HashMap<String, Float> spawnChances = new HashMap<String, Float>();
 IntDict keyCodes = new IntDict();
 // Values such as score or the current tick
 IntDict gameState = new IntDict();
+float gameAngle;
 // Powerups/cheats/mods
 HashMap<String, Boolean> modifiers = new HashMap<String, Boolean>();
 
@@ -45,18 +47,18 @@ void keyPressed()
   if (keyCode==RIGHT) {
     player.dir = 1;
   }
-  if(keyCode==LEFT) {
+  if (keyCode==LEFT) {
     player.dir = -1;
   }
   
-  if(gameState.get("active")==0 && keyCode==keyCodes.get("SPACE")) {
+  if (gameState.get("active")==0 && keyCode==keyCodes.get("SPACE")) {
      resetGame();
   }
 }
 
 void keyReleased()
 {
-  if(keyCode==RIGHT || keyCode==LEFT) {
+  if (keyCode==RIGHT || keyCode==LEFT) {
     player.dir = 0;
   }
 }
@@ -88,7 +90,6 @@ void setup()
   // Create boundaries (floors, temp.) and the player
   floors.add(new Floor(width / 2, height - 25, width * 2, 50, false));
   floors.add(new Floor(width / 2, height - 350, width * 2, 50, false));
-  floors.add(new Floor(width/2 , height , width, height, true));
   player = new Player();
   
   cam = new Camera();
@@ -108,7 +109,6 @@ void draw()
 {
   // General rendering of background and scores
   background(135, 206, 250);
-  rotateGame(30);
   if(gameState.get("active")==1) {
     box2d.step();
     box2d.listenForCollisions();
@@ -127,6 +127,58 @@ void draw()
   textSize(18);
   text(gameState.get("diamondsCollected"), 30, 37);
   
+  int tick = gameState.get("tick");
+  int score = gameState.get("score");
+  // Obstacle Logic
+  if (random(1) <= spawnChances.get("spike")) {
+    if (Obstacle.canSpawn(width)) {
+      Obstacle.spikeIsCeiling ^= 1; 
+      int orientation = Obstacle.spikeIsCeiling + 1;
+      int heightDiff = orientation == 1 ? 52 : 323;
+      int groupSize = round(random(1,3)) * 4;
+      obstacles.add(new Spike(width, height - heightDiff, groupSize, orientation));
+      if (orientation == 1) {
+        diamonds.add(new Diamond(width + random(-100,100), height - random(150,200)));
+      }
+    }
+  }
+
+  if (score > 500) {
+    int randOffset = round(random(5, 8)) * 60;
+    if (tick - randOffset >= Obstacle.lastProjectileTick) {
+      // Spawn warning indicator
+      Obstacle.lastProjectileTick = tick;
+      float randHeight = random(100, 300);
+      obstacles.add(new Projectile(width, height - randHeight, 100, radians(180), 15));
+    }
+  }
+  
+  float angleRate = 0.25;
+  if (score > 1 && score < 3000) {
+    if (gameAngle < 30 && gameState.get("water") == 0) {
+      gameAngle += min(angleRate, 30 - gameAngle);
+    }
+    if (gameAngle == 30 && gameState.get("water") == 0) {
+      water = new Floor(0, 3.5 * height, 4 * width, 3 * height, true);
+      floors.add(water);
+      gameState.set("water", 1);
+    }
+    
+    if (gameState.get("water") == 1) {
+      water.changeLevel(50, 1);
+    }
+
+    if (gameAngle > 0 && gameState.get("water") == 2) {
+      gameAngle -= min(angleRate, gameAngle);
+    }
+
+    if (gameAngle == 0 && gameState.get("water") == 2) {
+      water.changeLevel(50, -1);
+    }
+    
+    rotateGame(gameAngle);
+  }
+  
   // Floor rendering
   for(Floor f : floors)
   {
@@ -142,34 +194,6 @@ void draw()
     text("GAME OVER", width/2, height/2 - 100);
     textSize(20);
     text("Press SPACE to play again", width/2, height/2 - 50);
-  }
-  
-  int tick = gameState.get("tick");
-  int score = gameState.get("score");
-  // Obstacle Logic
-  if (random(1) <= spawnChances.get("spike")) {
-    if (Obstacle.canSpawn(width)) {
-      Obstacle.spikeIsCeiling ^= 1; 
-      int orientation = Obstacle.spikeIsCeiling + 1;
-      int heightDiff = orientation == 1 ? 53 : 322;
-      float groupSize = round(random(1,3) * 4);
-      for (int i=0; i < groupSize; i++) {
-        obstacles.add(new Spike(width + i*12, height - heightDiff, orientation));
-      }
-      if (orientation == 1) {
-        diamonds.add(new Diamond(width + random(-100,100), height - random(150,200)));
-      }
-    }
-  }
-
-  if (score > 500) {
-    int randOffset = round(random(5, 8)) * 60;
-    if (tick - randOffset >= Obstacle.lastProjectileTick) {
-      // Spawn warning indicator
-      Obstacle.lastProjectileTick = tick;
-      float randHeight = random(100, 300);
-      obstacles.add(new Projectile(width, height - randHeight, 100, radians(180), 15));
-    }
   }
   
   // Obstacle rendering
@@ -221,6 +245,8 @@ void resetGame()
   gameState.set("diamondsCollected", 0);
   gameState.set("speed", 50);
   gameState.set("active", 1);
+  gameState.set("water", 0);
+  gameAngle = 0;
   Obstacle.lastObstaclePos = 0;
   
   player.reset();
