@@ -131,7 +131,8 @@ public class Spike extends Obstacle
     
     Fixture f = body.getFixtureList();
     PolygonShape ps = (PolygonShape) f.getShape();
-    noStroke(); fill(0,this.alpha);
+    noStroke();
+    fill(0, this.alpha);
     beginShape();
     for (int i = 0; i < ps.getVertexCount(); i++) {
       Vec2 v = box2d.vectorWorldToPixels(ps.getVertex(i));

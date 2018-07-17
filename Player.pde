@@ -2,6 +2,7 @@ class Player
 {
   Body body;
   Vec2 pos;
+  int dir;
   float x, y, r;
   boolean left, right, spawned;
   ArrayList<PImage> animFrames = new ArrayList<PImage>();
@@ -12,6 +13,7 @@ class Player
       animFrames.add(loadImage("assets/player/dino" + i + ".png"));
     }
     this.spawned = false;
+    this.dir = 0;
     this.left = false;
     this.right = false;
     this.reset();
@@ -47,10 +49,7 @@ class Player
     image(animFrames.get(frameIndex), 0, 0);
      
     popMatrix();
-
-    if (this.left || this.right) {
-      move();
-    }
+    move();
   }
   
   void killBody() {
@@ -76,12 +75,21 @@ class Player
   }
   
   void move() {
-    int dir = right ? 1 : -1;
-    body.setLinearVelocity(new Vec2(dir * 60, body.getLinearVelocity().y));
-  }
+    float leftBound = 100;
+    float rightBound = 900;
+    Vec2 vel = body.getLinearVelocity();
 
-  void stopMovement() {
-    body.setLinearVelocity(new Vec2(0, body.getLinearVelocity().y));
+    if (dir == 1 && pos.x < rightBound) {
+      vel.x = dir * 50;
+    }
+    else if (dir == -1 && pos.x > leftBound) {
+      vel.x = dir * 50;
+    }
+    else {
+      vel.x = 0;
+    }
+
+    body.setLinearVelocity(vel);
   }
   
   void applyForce(Vec2 force) {

@@ -1,4 +1,4 @@
-  import shiffman.box2d.*;
+import shiffman.box2d.*;
 import org.jbox2d.common.*;
 import org.jbox2d.dynamics.joints.*;
 import org.jbox2d.collision.shapes.*;
@@ -30,6 +30,8 @@ IntDict gameState = new IntDict();
 // Powerups/cheats/mods
 HashMap<String, Boolean> modifiers = new HashMap<String, Boolean>();
 
+Camera cam;
+
 void mousePressed()
 {
 }
@@ -41,47 +43,28 @@ void keyPressed()
   }
   
   if (keyCode==RIGHT) {
-    player.right=true;
+    player.dir = 1;
   }
   if(keyCode==LEFT) {
-    player.left=true;
+    player.dir = -1;
   }
   
   if(gameState.get("active")==0 && keyCode==keyCodes.get("SPACE")) {
      resetGame();
   }
-  
-  if(keyCode==0x47)
-  {
-    if(!modifiers.get("godmode"))
-     modifiers.put("godmode",true);
-    else
-     modifiers.put("godmode",false);
-  }
 }
 
 void keyReleased()
 {
-  if(keyCode==RIGHT) {
-    player.right=false;
-    player.stopMovement();
+  if(keyCode==RIGHT || keyCode==LEFT) {
+    player.dir = 0;
   }
-  if(keyCode==LEFT) {
-    player.left=false;
-    player.stopMovement();
-  }
-}
-
-void resetCamera() {
-  camera(width/2.0, height/2.0, (height/2.0) / tan(PI*30.0 / 180.0),
-         width/2.0, height/2.0, 0,
-         0, 1, 0);
 }
 
 void setup()
 {
   //GODMODE
-  modifiers.put("godmode", false);
+  modifiers.put("godmode", true);
 
   sprites.put("diamondIcon", loadImage("assets/misc/diamondSmall.png")); 
   
@@ -103,24 +86,29 @@ void setup()
   box2d.setGravity(0,-400);
   
   // Create boundaries (floors, temp.) and the player
-  floors.add(new Floor(width/2, height-25, width*2, 50, false));
-  floors.add(new Floor(width/2, height-350, width*2, 50, false));
-  //borders
-  floors.add(new Floor(0,height/2,1,height,true));
-  floors.add(new Floor(width,height/2,1,height,true));
+  floors.add(new Floor(width / 2, height - 25, width * 2, 50, false));
+  floors.add(new Floor(width / 2, height - 350, width * 2, 50, false));
+  floors.add(new Floor(width/2 , height , width, height, true));
   player = new Player();
-  // eye, center, up
-  // camera(width/2.0, height/2.0, (height/2.0) / tan(PI*30.0 / 180.0),
-  //        width/2.0, height/2.0, 0,
-  //        0, 1, 0);
   
+  cam = new Camera();
   resetGame();
+}
+
+void rotateGame(float deg) {
+  float ang = radians(deg);
+  float w2 = width / 2,
+        h2 = height / 2;
+  translate(w2, h2);
+  rotate(ang);
+  translate(-w2, -h2);
 }
 
 void draw()
 {
   // General rendering of background and scores
   background(135, 206, 250);
+  rotateGame(30);
   if(gameState.get("active")==1) {
     box2d.step();
     box2d.listenForCollisions();
@@ -138,11 +126,6 @@ void draw()
   image(sprites.get("diamondIcon"), 5, 20);
   textSize(18);
   text(gameState.get("diamondsCollected"), 30, 37);
-  fill(255,0,0); textSize(12);
-  if(modifiers.get("godmode"))
-   text("GODMODE ON",5,60);
-  else
-   text("GODMODE OFF",5,60);
   
   // Floor rendering
   for(Floor f : floors)
@@ -179,8 +162,8 @@ void draw()
     }
   }
 
-  if (score > 1000) {
-    int randOffset = round(random(5,8)) * 60;
+  if (score > 500) {
+    int randOffset = round(random(5, 8)) * 60;
     if (tick - randOffset >= Obstacle.lastProjectileTick) {
       // Spawn warning indicator
       Obstacle.lastProjectileTick = tick;
@@ -214,6 +197,14 @@ void draw()
       diamonds.remove(i);
     }
   }
+
+  // Camera manipulation
+  // eye, center, up
+  // ? ? zoom
+  // rotate along axis
+  // rotate, flip vertical (-1/1), none
+
+  //209.965 : reverse?
   
   if (gameState.get("active") == 1) {
     if (tick % 5 == 0) {
@@ -224,6 +215,7 @@ void draw()
 
 void resetGame()
 {
+  cam.resetCamera();
   gameState.set("tick", 1);
   gameState.set("score", 0);
   gameState.set("diamondsCollected", 0);
