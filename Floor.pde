@@ -1,12 +1,19 @@
 class Floor
 {
   float x, y, w, h;
+  boolean blank;
   Body b;
+  int offset;
+  PImage dirtTexture = loadImage("assets/misc/dirt.png");
   
-  Floor(float x, float y, float w, float h)
+  Floor(float x, float y, float w, float h, boolean blank)
   {
-    this.x=x; this.y=y;
-    this.w=w; this.h=h;
+    this.x=x;
+    this.y=y;
+    this.w=w;
+    this.h=h;
+    this.offset=0;
+    this.blank=blank;
     
     PolygonShape sd = new PolygonShape();
     float box2dW = box2d.scalarPixelsToWorld(w/2);
@@ -18,14 +25,20 @@ class Floor
     bd.position.set(box2d.coordPixelsToWorld(x,y));
     b=box2d.createBody(bd);
     
-    b.createFixture(sd,1);
+    b.createFixture(sd, 1);
   }
   
-  void show()
+    void show()
   {
-    fill(200);
     noStroke();
     rectMode(CENTER);
-    rect(this.x,this.y,this.w,this.h);
+    imageMode(CENTER);
+    for(int i=0; i<=this.w; i+=50)
+    {
+     if(!this.blank)
+      image(dirtTexture,i-this.offset%50,this.y);
+    }
+    if(gameState.get("active")==1)
+    offset += 7;
   }
 }

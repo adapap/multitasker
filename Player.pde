@@ -1,66 +1,70 @@
 class Player
 {
   Body body;
-  float w, h, x, y, r;
-  int count_=0;
-  boolean left=false, right=false;
+  Vec2 pos;
+  float x, y, r;
+  boolean left, right, spawned;
+  ArrayList<PImage> animFrames = new ArrayList<PImage>();
   
-  Player(float x, float y, float w, float h, float r)
+  Player()
   {
-    this.w=w; this.x=x;
-    this.h=h; this.y=y;
-    makeBody(new Vec2(x,y),w,h);
+    for (int i=1; i<4; i++) {
+      animFrames.add(loadImage("assets/player/dino" + i + ".png"));
+    }
+    this.spawned = false;
+    this.left = false;
+    this.right = false;
+    this.reset();
+  }
+  
+  void reset() {
+    if (this.spawned) {
+      killBody();
+    }
+    this.x = 200;
+    this.y = height - 85;
+    this.r = 35;
+    makeBody(new Vec2(this.x, this.y), this.r);
     body.setUserData(this);
-    this.left=false; this.right=false;
-    this.r=r;
+    this.left=false;
+    this.right=false;
+    this.spawned = true;
   }
   
   void show()
   {
-    Vec2 pos = box2d.getBodyPixelCoord(body);
-    float a=body.getAngle()*-1;
+    pos = box2d.getBodyPixelCoord(body);
+    float a = -body.getAngle();
     
     imageMode(CENTER);
     pushMatrix();
-    translate(pos.x,pos.y);
+    translate(pos.x, pos.y);
     rotate(a);
     noFill(); stroke(0); strokeWeight(2);
- 
-    if(count_<10)
-     image(dino1,0,0);
-    else
-     image(dino2,0,0);
 
+    int tick = gameState.get("tick");
+    int frameIndex = floor(tick % 30 / 10);
+    image(animFrames.get(frameIndex), 0, 0);
      
     popMatrix();
-    if(!gameOver)
-    count_++;
-    if(count_>20)
-     count_=0;
+
+    if (this.left || this.right) {
+      move();
+    }
   }
   
-  void change()
-  {
-   gameOver=true; 
+  void killBody() {
+    box2d.destroyBody(this.body);
   }
   
-  boolean check()
-  {
-    Vec2 pos=box2d.getBodyPixelCoord(body);
-    return (pos.x<-w/2.0);
-  }
-  
-  void makeBody(Vec2 center, float w, float h)
-  {
-    PolygonShape sd = new PolygonShape();
-    float box2dW = box2d.scalarPixelsToWorld(w/2);
-    float box2dH = box2d.scalarPixelsToWorld(h/2);
-    sd.setAsBox(box2dW,box2dH);
+  void makeBody(Vec2 center, float r) {
+    CircleShape cs = new CircleShape();
+    cs.m_radius = box2d.scalarPixelsToWorld(r);
     
     FixtureDef fd = new FixtureDef();
-    fd.shape=sd;
+    fd.shape=cs;
     fd.density=1;
-    fd.friction=1;
+    fd.friction=0;
     fd.restitution=0;
     
     BodyDef bd = new BodyDef();
@@ -68,23 +72,20 @@ class Player
     bd.position.set(box2d.coordPixelsToWorld(center));
     
     body=box2d.createBody(bd);
-    body.createFixture(fd);   
-    
-    //body.setLinearVelocity(new Vec2(random(10,20),random(40,50)));
-    //body.setAngularVelocity(0);
+    body.createFixture(fd);
   }
   
-  void move()
-  {
-    if(right)
-     this.applyForce(new Vec2(20000,0));
-    if(left)
-     this.applyForce(new Vec2(-20000,0));
+  void move() {
+    int dir = right ? 1 : -1;
+    body.setLinearVelocity(new Vec2(dir * 60, body.getLinearVelocity().y));
+  }
+
+  void stopMovement() {
+    body.setLinearVelocity(new Vec2(0, body.getLinearVelocity().y));
   }
   
-  void applyForce(Vec2 force)
-  {
-    if(floor(body.getLinearVelocity().y)==0)
+  void applyForce(Vec2 force) {
+    if(floor(pos.y) == 634)
       body.applyForceToCenter(force);
   }
   
