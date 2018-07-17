@@ -1,10 +1,6 @@
 class Diamond
 {
-  boolean dead, animate;
-  boolean readyToFadeIn  = false,
-          readyToFadeOut = false,
-          doneFadingIn   = false,
-          doneFadingOut  = false;
+  boolean dead, collected;
   int startTick;
   int animSpeed = 90;
   PImage diamondSprite = loadImage("assets/misc/diamond.png");
@@ -16,8 +12,8 @@ class Diamond
   Diamond(float x, float y)
   { 
     this.dead=false;
-    this.animate=false;
-    this.alpha=255;
+    this.collected=false;
+    this.alpha=0;
     this.x=x;
     this.y=y;
     makeBody(new Vec2(x,y), 21, 30);
@@ -35,12 +31,10 @@ class Diamond
     pushMatrix();
     translate(pos.x,pos.y);
     rotate(a);
-    tint(255,this.alpha);
+    tint(255, this.alpha);
     image(this.diamondSprite, 0, 0);
     tint(255, 255);
     popMatrix();
-    if (this.animate && this.alpha > 0)
-     this.alpha -= 15;
      
     this.applyForce(forces.get("antiGravity"));
     
@@ -51,29 +45,13 @@ class Diamond
     else if (tickDiff % 180 == 90) {
      this.applyForce(new Vec2(0, animSpeed * -2));
     }
-    this.inAndOut();
-  }
-  
-  void inAndOut()
-  {
-    if(pos.x <= width && !doneFadingIn)
-     readyToFadeIn=true;
-    
-    if(readyToFadeIn)
-      this.alpha += 15;
-      
-    if(this.alpha >= 255 && readyToFadeIn)
-    {
-      this.alpha=255;
-      readyToFadeIn=false;
-      doneFadingIn=true;
+    if (pos.x <= width && this.alpha < 255) {
+      this.alpha += min(15, 255 - this.alpha);
     }
-    
-    if(pos.x<=80 && !doneFadingOut)
-     readyToFadeOut=true;
-     
-    if(readyToFadeOut)
-     this.alpha-=25;
+      
+    if ((pos.x <= 140 || this.collected) && this.alpha > 0) {
+      this.alpha -= min(25, this.alpha);
+    }
   }
   
   void killBody()

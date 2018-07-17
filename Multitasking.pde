@@ -1,4 +1,4 @@
-import shiffman.box2d.*;
+  import shiffman.box2d.*;
 import org.jbox2d.common.*;
 import org.jbox2d.dynamics.joints.*;
 import org.jbox2d.collision.shapes.*;
@@ -6,7 +6,10 @@ import org.jbox2d.collision.shapes.Shape;
 import org.jbox2d.dynamics.*;
 import org.jbox2d.dynamics.contacts.*;
 
-Box2DProcessing box2d;
+static Box2DProcessing box2d;
+static int gameWidth = 1280;
+static int gameHeight = 720;
+
 ArrayList<Floor> floors = new ArrayList<Floor>();
 //ArrayList<Spike> spikes = new ArrayList<Spike>();
 ArrayList<Obstacle> obstacles = new ArrayList<Obstacle>();
@@ -24,6 +27,8 @@ HashMap<String, Float> spawnChances = new HashMap<String, Float>();
 IntDict keyCodes = new IntDict();
 // Values such as score or the current tick
 IntDict gameState = new IntDict();
+// Powerups/cheats/mods
+HashMap<String, Boolean> modifiers = new HashMap<String, Boolean>();
 
 void mousePressed()
 {
@@ -51,26 +56,40 @@ void keyReleased()
 {
   if(keyCode==RIGHT) {
     player.right=false;
+    player.stopMovement();
   }
   if(keyCode==LEFT) {
     player.left=false;
+    player.stopMovement();
   }
+}
+
+void resetCamera() {
+  camera(width/2.0, height/2.0, (height/2.0) / tan(PI*30.0 / 180.0),
+         width/2.0, height/2.0, 0,
+         0, 1, 0);
 }
 
 void setup()
 {
+  //GODMODE
+  modifiers.put("godmode", false);
+
   sprites.put("diamondIcon", loadImage("assets/misc/diamondSmall.png")); 
   
   forces.put("playerJump", new Vec2(0, 2E6));
   forces.put("diamondAnimation", new Vec2(0, 2E3));
   forces.put("antiGravity", new Vec2(0, 400));
+  forces.put("none", new Vec2(0, 0));
+  // forces.put("projectileAntigrav", new Vec2(0, 300));
   
   spawnChances.put("spike", 0.1);
+  spawnChances.put("projectile", 0.005);
   
   keyCodes.set("SPACE", 32);
   
   // Initiate the world for the game
-  size(1280, 720, P2D);
+  size(1280, 720, P3D);
   box2d = new Box2DProcessing(this);
   box2d.createWorld();
   box2d.setGravity(0,-400);
@@ -79,6 +98,10 @@ void setup()
   floors.add(new Floor(width/2, height-25, width*2, 50));
   floors.add(new Floor(width/2, height-350, width*2, 50));
   player = new Player();
+  // eye, center, up
+  // camera(width/2.0, height/2.0, (height/2.0) / tan(PI*30.0 / 180.0),
+  //        width/2.0, height/2.0, 0,
+  //        0, 1, 0);
   
   resetGame();
 }
@@ -113,7 +136,6 @@ void draw()
   
   // Player updates
   player.show();
-  player.move();
   textAlign(CENTER);
   textSize(40);
   fill(0);
@@ -123,6 +145,8 @@ void draw()
     text("Press SPACE to play again", width/2, height/2 - 50);
   }
   
+  int tick = gameState.get("tick");
+  int score = gameState.get("score");
   // Obstacle Logic
   if (random(1) <= spawnChances.get("spike")) {
     if (Obstacle.canSpawn(width)) {
@@ -138,10 +162,20 @@ void draw()
       }
     }
   }
+
+  if (score > 1) {
+    int randOffset = round(random(1, 3)) * 60;
+    if (tick - randOffset >= Obstacle.lastProjectileTick) {
+      // Spawn warning indicator
+      Obstacle.lastProjectileTick = tick;
+      float randHeight = random(100, 300);
+      obstacles.add(new Projectile(width, height - randHeight, 100, radians(180), 15));
+    }
+  }
   
   // Obstacle rendering
   float maxPos = 0;
-  for(int i=obstacles.size() - 1; i>=0; i--) {
+  for (int i=obstacles.size() - 1; i>=0; i--) {
     Obstacle o = obstacles.get(i);
     o.show();
     if(o.pos.x > maxPos) {
@@ -166,7 +200,6 @@ void draw()
   }
   
   if (gameState.get("active") == 1) {
-    int tick = gameState.get("tick");
     if (tick % 5 == 0) {
       gameState.increment("score");
     }
@@ -213,7 +246,7 @@ void beginContact(Contact cp)
     return;
   }
    
-  if (hasClass(o1, o2, Obstacle.class)) {
+  if (hasClass(o1, o2, Obstacle.class) && !modifiers.get("godmode")) {
     gameState.set("active", 0);
   }
   
@@ -227,7 +260,7 @@ void beginContact(Contact cp)
     }
     gameState.increment("diamondsCollected");
     d.applyForce(forces.get("diamondAnimation"));
-    d.animate=true;
+    d.collected=true;
   }
 }
 

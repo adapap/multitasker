@@ -33,14 +33,9 @@ class Floor
     imageMode(CENTER);
     for(int i=0; i<=this.w; i+=50)
     {
-     //if(i>width/2)
-     //  fill(200,width-i);
-     //else
-     //  fill(200,i);
-     //rect(i,this.y,1,this.h);
      image(dirtTexture,i-this.offset%50,this.y);
     }
     if(gameState.get("active")==1)
-    offset+=7;
+    offset += 7;
   }
 }
