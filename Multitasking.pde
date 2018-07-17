@@ -41,10 +41,10 @@ void keyPressed()
   }
   
   if (keyCode==RIGHT) {
-    player.right=true;
+    player.dir = 1;
   }
   if(keyCode==LEFT) {
-    player.left=true;
+    player.dir = -1;
   }
   
   if(gameState.get("active")==0 && keyCode==keyCodes.get("SPACE")) {
@@ -54,13 +54,8 @@ void keyPressed()
 
 void keyReleased()
 {
-  if(keyCode==RIGHT) {
-    player.right=false;
-    player.stopMovement();
-  }
-  if(keyCode==LEFT) {
-    player.left=false;
-    player.stopMovement();
+  if(keyCode==RIGHT || keyCode==LEFT) {
+    player.dir = 0;
   }
 }
 
@@ -163,8 +158,8 @@ void draw()
     }
   }
 
-  if (score > 1) {
-    int randOffset = round(random(1, 3)) * 60;
+  if (score > 500) {
+    int randOffset = round(random(5, 8)) * 60;
     if (tick - randOffset >= Obstacle.lastProjectileTick) {
       // Spawn warning indicator
       Obstacle.lastProjectileTick = tick;
