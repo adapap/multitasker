@@ -11,7 +11,6 @@ static int gameWidth = 1280;
 static int gameHeight = 720;
 
 ArrayList<Floor> floors = new ArrayList<Floor>();
-//ArrayList<Spike> spikes = new ArrayList<Spike>();
 ArrayList<Obstacle> obstacles = new ArrayList<Obstacle>();
 ArrayList<Diamond> diamonds = new ArrayList<Diamond>();
 Player player;
@@ -31,6 +30,7 @@ IntDict gameState = new IntDict();
 float gameAngle;
 // Powerups/cheats/mods
 HashMap<String, Boolean> modifiers = new HashMap<String, Boolean>();
+float currentGravity;
 
 Camera cam;
 
@@ -74,7 +74,7 @@ void setup()
   forces.put("diamondAnimation", new Vec2(0, 2E3));
   forces.put("antiGravity", new Vec2(0, 400));
   forces.put("none", new Vec2(0, 0));
-  // forces.put("projectileAntigrav", new Vec2(0, 300));
+  currentGravity=400;
   
   spawnChances.put("spike", 0.1);
   spawnChances.put("projectile", 0.005);
@@ -114,6 +114,23 @@ void draw()
     box2d.listenForCollisions();
     gameState.increment("tick");
   }
+  int waterStage = gameState.get("water");
+  if(waterStage>=1 && waterStage<=4)
+  {
+    currentGravity=100;
+    forces.put("playerJump", new Vec2(0, 145000));
+  }
+  else
+  {
+    currentGravity=400;
+    forces.put("playerJump", new Vec2(0, 2E6));
+  }
+  box2d.setGravity(0,-currentGravity);
+  forces.put("antiGravity",new Vec2(0,currentGravity));
+  if(currentGravity<400)
+   gameState.set("speed",35);
+  else
+   gameState.set("speed",50);
   //score+=1.0/60.0;
   fill(0);
   textAlign(LEFT);
@@ -129,7 +146,6 @@ void draw()
   
   int tick = gameState.get("tick");
   int score = gameState.get("score");
-  int waterStage = gameState.get("water");
   // Obstacle Logic
   if (waterStage == 3 || waterStage == 6 || (score <= 1000 && waterStage == 0)) {
     // Spike

@@ -57,6 +57,7 @@ class Floor
       }
       if(gameState.get("active")==1)
       offset += 7;
+      if(currentGravity<400) offset-=3;
     }
     else
     {

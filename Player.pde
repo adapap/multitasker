@@ -81,10 +81,13 @@ class Player
     Vec2 vel = body.getLinearVelocity();
 
     if (dir == 1 && pos.x < rightBound) {
-      vel.x = dir * moveSpeed;
+      vel.x = dir * moveSpeed * currentGravity/400.0;
     }
     else if (dir == -1 && pos.x > leftBound) {
-      vel.x = dir * moveSpeed;
+      if(currentGravity<400)
+        vel.x = dir * moveSpeed * currentGravity/200.0;
+      else
+        vel.x = dir * moveSpeed * currentGravity/400.0;
     }
     else {
       vel.x = 0;

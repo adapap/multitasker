@@ -1,4 +1,4 @@
-class Diamond
+ class Diamond
 {
   boolean dead, collected;
   int startTick;
